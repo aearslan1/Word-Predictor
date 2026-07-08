@@ -1,3 +1,4 @@
+import math
 class EPredictor():
     def __init__(self,wordPool: list):
         self.wordPool = wordPool
@@ -53,17 +54,55 @@ class EPredictor():
                     sameSequenceCount += 1
             similarityRatios[poolWord] = (sameSequenceCount / len(longerWord)) * mass
         return similarityRatios
+  
     def getLeftSideOnMatrix(self,matrix: list,num: int):
-        rowNum = len(matrix) // num
+        colCount = len(matrix[0])
+        rowCount = len(matrix)
+        if num <= 0 or num > rowCount * colCount: # hatalı sonuç vermesin diye
+            return False
         
+        rowNum = math.ceil(num / colCount)
+        colNum = (num % colCount) 
+        if colNum == 0:
+            colNum = colCount 
+        
+        rowNum -= 1 #liste standartlarına uygun olsun diye ikisinide bir eksilttim
+        colNum -= 1
+
+        sides = [] #[sol , sol çapraz , aşağı]
+       
+        #sol tarafı alıyoruz (row , col - 1)
+        if colNum - 1 >= 0:
+            sides.append(matrix[rowNum][colNum - 1])
+        
+        else:
+            sides.append(None)
+
+        #sol çapraz tarafı alıyoruz (row + 1 , col - 1)
+        if rowNum + 1 <= rowCount - 1 and colNum - 1 >= 0:
+            sides.append(matrix[rowNum + 1][colNum - 1])
+        else:
+            sides.append(None)
+        
+        #aşağı tarafı al (row + 1 , col - 1)
+        if rowNum + 1 <= rowCount and colNum - 1 >= 0:
+            sides.append(matrix[rowNum + 1][colNum - 1])
+        else:
+            sides.append(None)
+        return rowNum , colNum , sides
+
     def levenshteinDistance(self,word: str):
         similarityRatios = {}
-
+        wordList = [0,0]
+        wordList.extend(letter for letter in word)
         for poolWord in self.wordPool:
+            poolWordList = [0,0]
+            poolWordList.extend(letter for letter in poolWord)
             matrix = [[0 for _ in range(len(poolWord) + 1)] for _ in range(len(word) + 1)]
-            matrix[0] = [i for i in range(len(poolWord) + 1)]
-            for i in range(len(word) + 1):
-                matrix[i][0] = i 
+        matrix[0][0] = 1
+        matrix[1][0] = 1
+        matrix[1][1] = 1
+        print(self.getLeftSideOnMatrix(matrix,2))
         return matrix
     def allRatio(self,word: str):
         sameWordProbs = self.sameWordRatio(word,0.3)
@@ -72,10 +111,10 @@ class EPredictor():
             letterSequenceProbs[poolWord]+= sameWordProbs[poolWord]
         return letterSequenceProbs
 
-EPredictor = EPredictor(["berkay","egemen","görkem"])
-name = input("text: ")
-print(EPredictor.sameWordRatio(name,1))
-print(EPredictor.letterSequenceRatio(name,1))
-print(EPredictor.allRatio(name))
-for i in EPredictor.levenshteinDistance(name):
+epredictor = EPredictor(["berkay","egemen","görkem"])
+name = "ege"
+print(epredictor.sameWordRatio(name,1))
+print(epredictor.letterSequenceRatio(name,1))
+print(epredictor.allRatio(name))
+for i in epredictor.levenshteinDistance(name):
     print(i)
