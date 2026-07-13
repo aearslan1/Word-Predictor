@@ -1,4 +1,3 @@
-import math
 class EPredictor():
     def __init__(self,wordPool: list):
         self.wordPool = wordPool
@@ -55,55 +54,53 @@ class EPredictor():
             similarityRatios[poolWord] = (sameSequenceCount / len(longerWord)) * mass
         return similarityRatios
   
-    def getLeftSideOnMatrix(self,matrix: list,num: int):
+    def getLeftSideMinOnMatrix(self,matrix: list,row: int,col: int):
         colCount = len(matrix[0])
         rowCount = len(matrix)
-        if num <= 0 or num > rowCount * colCount: # hatalı sonuç vermesin diye
+        if row < 0 or col < 0 or row >= rowCount or col >= colCount:
             return False
         
-        rowNum = math.ceil(num / colCount)
-        colNum = (num % colCount) 
-        if colNum == 0:
-            colNum = colCount 
-        
-        rowNum -= 1 #liste standartlarına uygun olsun diye ikisinide bir eksilttim
-        colNum -= 1
+        rowNum = row
+        colNum = col
 
-        sides = [] #[sol , sol çapraz , aşağı]
-       
-        #sol tarafı alıyoruz (row , col - 1)
+        sides = [] #[üst , sol üst çapraz , sol]
+    
+        #üst taraf (row - 1 , col)
+        if rowNum - 1 >= 0:
+            sides.append(matrix[rowNum - 1][colNum])
+        #sol üst taraf (row - 1 , col - 1)
+        if rowNum - 1 >= 0 and colNum - 1 >= 0:
+            sides.append(matrix[rowNum - 1][colNum - 1])
+        
+        #sol taraf (row , col - 1)
         if colNum - 1 >= 0:
             sides.append(matrix[rowNum][colNum - 1])
-        
+        if sides:
+            minValue = min(sides)
         else:
-            sides.append(None)
-
-        #sol çapraz tarafı alıyoruz (row + 1 , col - 1)
-        if rowNum + 1 <= rowCount - 1 and colNum - 1 >= 0:
-            sides.append(matrix[rowNum + 1][colNum - 1])
-        else:
-            sides.append(None)
-        
-        #aşağı tarafı al (row + 1 , col - 1)
-        if rowNum + 1 <= rowCount and colNum - 1 >= 0:
-            sides.append(matrix[rowNum + 1][colNum - 1])
-        else:
-            sides.append(None)
-        return rowNum , colNum , sides
-
+            minValue = 0
+        return minValue
+    
     def levenshteinDistance(self,word: str):
         similarityRatios = {}
-        wordList = [0,0]
+        wordList = [0]
         wordList.extend(letter for letter in word)
         for poolWord in self.wordPool:
-            poolWordList = [0,0]
+            poolWordList = [0]
             poolWordList.extend(letter for letter in poolWord)
             matrix = [[0 for _ in range(len(poolWord) + 1)] for _ in range(len(word) + 1)]
-        matrix[0][0] = 1
-        matrix[1][0] = 1
-        matrix[1][1] = 1
-        print(self.getLeftSideOnMatrix(matrix,2))
-        return matrix
+
+            for y in range(len(poolWord) + 1):
+                for x in range(len(wordList)):
+                    minValue = self.getLeftSideMinOnMatrix(matrix,x,y)
+                    if wordList[x] == poolWordList[y]:
+                        matrix[x][y] = minValue
+                    else:
+                        matrix[x][y] = minValue + 1
+            self.getLeftSideMinOnMatrix(matrix,0,0)
+            
+            
+
     def allRatio(self,word: str):
         sameWordProbs = self.sameWordRatio(word,0.3)
         letterSequenceProbs = self.letterSequenceRatio(word,0.7)
@@ -111,10 +108,14 @@ class EPredictor():
             letterSequenceProbs[poolWord]+= sameWordProbs[poolWord]
         return letterSequenceProbs
 
-epredictor = EPredictor(["berkay","egemen","görkem"])
-name = "ege"
-print(epredictor.sameWordRatio(name,1))
-print(epredictor.letterSequenceRatio(name,1))
-print(epredictor.allRatio(name))
-for i in epredictor.levenshteinDistance(name):
-    print(i)
+    def bestProb(self,word: str):
+        ratios = self.allRatio(word)
+        biggerValue = (list(ratios.keys())[0],ratios[list(ratios.keys())[0]])
+        for name in ratios:
+            keyValue = ratios[name]
+            if keyValue > biggerValue[1]:
+                biggerValue = (name,keyValue)
+        return biggerValue
+epredictor = EPredictor(wordPool=["egemem","berkay","görkem"])
+
+print(epredictor.bestProb("pep"))
