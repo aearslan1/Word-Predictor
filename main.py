@@ -25,8 +25,15 @@ class EPredictor():
                 addedLetters.append(letter)
             
         return addedLetters
-    
-    def sameWordRatio(self,word: str,mass: int):
+
+    def nGramAlgorithm(self,word: str,n: int):
+        packet = []
+        i = 0
+        while i + n <= len(word):
+            packet.append(word[i:i+n])
+            i += 1
+        return set(packet)
+    def sameWordRatio(self,word: str,mass: float):
         setWord = self.convertSet(word) #kelimenin harflerini listeye attık,küme formatı ile
         similarityRatios = {} 
 
@@ -42,7 +49,7 @@ class EPredictor():
         
         return similarityRatios
     
-    def letterSequenceRatio(self,word: str,mass: int):
+    def letterSequenceRatio(self,word: str,mass: float):
         similarityRatios = {}
         for poolWord in self.wordPool:
             sameSequenceCount = 0
@@ -53,6 +60,28 @@ class EPredictor():
                     sameSequenceCount += 1
             similarityRatios[poolWord] = (sameSequenceCount / len(longerWord)) * mass
         return similarityRatios
-  
 
-    
+    def nGramRatio(self, word: str,mass: float,n=2):
+        wordNGrams = self.nGramAlgorithm(word, n)
+        similarityRatios = {}
+        for poolWord in self.wordPool:
+            sameGramCount = 0
+            poolWordNGrams = self.nGramAlgorithm(poolWord, n)
+
+            for poolWordGram in poolWordNGrams:
+                for wordGram in wordNGrams:
+                    if wordGram == poolWordGram:
+                        sameGramCount += 1
+
+            full = len(set(poolWordNGrams).union(set(wordNGrams)))
+            similarityRatios[poolWord] = sameGramCount / full
+                 
+        return similarityRatios
+
+    def allRatio(self,word: str,mass:float):
+        pass
+pool = ["ali", "veli", "can", "aaa"]
+
+epredictor = EPredictor(pool)
+
+print(epredictor.nGramRatio(word="aaa",mass=1,n=2))
