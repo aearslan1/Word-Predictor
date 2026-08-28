@@ -7,7 +7,7 @@ A Python class designed to calculate similarity ratios between a given word and 
 *   **Same Word Ratio:** Measures character-level similarity by comparing unique letter sets, ignoring duplicates.
 *   **Letter Sequence Ratio:** Compares positional character matches between two strings.
 *   **All Ratio:** A weighted combination algorithm (30% letter set, 70% sequence) to provide a final prediction score.
-*   **Levenshtein Distance:** A framework to calculate the minimum edit distance between strings using matrix operations.
+*   **N-Gram Algorithm:** A framework to calculate n-gram similarity between strings using set operations.
 
 ## How It Works
 
